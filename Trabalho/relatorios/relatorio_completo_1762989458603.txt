@@ -1,0 +1,36 @@
+============================================================
+           RELATÓRIO COMPLETO DA ESCOLA
+============================================================
+Gerado em: 2025-11-12
+
+RESUMO GERAL:
+Total de alunos: 5
+Total de funcionários: 4
+Total de responsáveis: 3
+Total de turmas: 3
+Total de matrículas: 2
+Alunos em turmas: 5
+
+========================================
+RELATÓRIO DE ALUNOS
+========================================
+ID: 1 | Nome: Lucas Silva | Idade: 2 | Responsável: Maria Silva | Necessidade: Nenhuma
+ID: 2 | Nome: Julia Santos | Idade: 3 | Responsável: João Santos | Necessidade: Nenhuma
+ID: 3 | Nome: Miguel Oliveira | Idade: 4 | Responsável: Ana Oliveira | Necessidade: Nenhuma
+ID: 4 | Nome: Sophia Costa | Idade: 5 | Responsável: Maria Silva | Necessidade: Nenhuma
+ID: 5 | Nome: Arthur Mendes | Idade: 6 | Responsável: João Santos | Necessidade: TDAH
+
+========================================
+RELATÓRIO DE FUNCIONÁRIOS
+========================================
+ID: 1 | Nome: Amanda Rocha | Cargo: Professor | Vínculo: CLT | Turno: Manhã
+ID: 2 | Nome: Bruno Almeida | Cargo: Professor | Vínculo: CLT | Turno: Tarde
+ID: 3 | Nome: Carlos Souza | Cargo: Cuidador | Vínculo: CLT | Faixa: 2-3 anos
+ID: 4 | Nome: Daniela Lima | Cargo: Coordenador | Vínculo: CLT | Setor: Pedagógico
+
+========================================
+RELATÓRIO DE TURMAS
+========================================
+ID: 1 | Nome: Maternal | Faixa: 2-3 anos | Turno: Manhã | Professor: Amanda Rocha | Alunos: 2
+ID: 2 | Nome: Infantil I | Faixa: 4-5 anos | Turno: Tarde | Professor: Bruno Almeida | Alunos: 2
+ID: 3 | Nome: Pré-escola | Faixa: 6 anos | Turno: Integral | Professor: Amanda Rocha | Alunos: 1

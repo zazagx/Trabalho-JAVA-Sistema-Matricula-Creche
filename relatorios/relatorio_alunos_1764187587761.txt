@@ -1,0 +1,25 @@
+============================================================
+          RELATÓRIO DE ALUNOS - CRECHE ESTRELA DO ORIENTE
+============================================================
+Gerado em: 2025-11-26
+
+------------------------------------------------------------------------------------------------------------------------
+ID    Nome                 Nascimento   Idade  Sexo       Turma           Responsável          Voluntariado   
+------------------------------------------------------------------------------------------------------------------------
+1     Lucas Silva          15-03-2021   4      Masculino  Sem turma       Nenhum               0 dias/mês     
+2     Julia Santos         22-08-2020   5      Feminino   Sem turma       Nenhum               0 dias/mês     
+3     Miguel Oliveira      05-11-2019   6      Masculino  Sem turma       Nenhum               0 dias/mês     
+7     Zepekeno             15-05-2023   2      Masculino  Sem turma       Nenhum               0 dias/mês     
+8     Sasha                20-02-2022   3      Feminino   Sem turma       Nenhum               0 dias/mês     
+10    Erwin Smith          10-07-2021   4      Masculino  Sem turma       Nenhum               0 dias/mês     
+11    Armin Arlet          15-04-2021   4      Masculino  Sem turma       Nenhum               0 dias/mês     
+12    Erwin Smith          20-01-2022   3      Masculino  Sem turma       Nenhum               0 dias/mês     
+13    Mikasa               08-03-2023   2      Feminino   Sem turma       Nenhum               0 dias/mês     
+------------------------------------------------------------------------------------------------------------------------
+
+ESTATÍSTICAS:
+Total de alunos: 9
+Meninos: 6
+Meninas: 3
+Com turma: 0
+Sem turma: 9
