@@ -94,7 +94,7 @@ USE creche;
 Passo 2: Baixar o MySQL Connector/J
 Opção 1: Download Manual (Recomendado)
 
-Acesse: https://dev.mysql.com/downloads/connector/j/
+Acesse: [https://dev.mysql.com/downloads/connector/j/](https://mvnrepository.com/artifact/com.mysql/mysql-connector-j/9.5.0)
 
 Selecione "Platform Independent"
 
@@ -344,6 +344,7 @@ DESCRIBE alunos;
 -- Ver dados de exemplo
 SELECT * FROM alunos LIMIT 5;
 📞 Suporte
++55 (98) 981852670
 Em caso de problemas:
 
 Verifique se todos os pré-requisitos estão instalados
