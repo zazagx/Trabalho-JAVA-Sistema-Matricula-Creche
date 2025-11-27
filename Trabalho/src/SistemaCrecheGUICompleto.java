@@ -535,60 +535,110 @@ class MatriculaDAO {
     }
 
     public void cadastrar(Matricula matricula) throws SQLException {
-        String sql = "INSERT INTO matriculas (numero, data, situacao, observacoes, endereco, aluno_id, " +
-                "funcionario_id, turma_id, pre_matricula, declaracao_orientacoes, data_declaracao) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, matricula.getNumeroMatricula());
-            stmt.setDate(2, Date.valueOf(matricula.getData()));
-            stmt.setString(3, matricula.getSituacao().name());
-            stmt.setString(4, matricula.getObservacoes());
-            stmt.setString(5, matricula.getEndereco());
-            stmt.setInt(6, matricula.getAluno().getId());
-            stmt.setInt(7, matricula.getFuncionario().getId());
-            stmt.setInt(8, matricula.getTurma() != null ? matricula.getTurma().getId() : 0);
-            stmt.setBoolean(9, matricula.getSituacao() == SituacaoMatricula.PRE_MATRICULA);
-            stmt.setBoolean(10, matricula.isDeclaracaoOrientacoes());
-            stmt.setDate(11, matricula.getDataDeclaracao() != null ? Date.valueOf(matricula.getDataDeclaracao()) : null);
+        String sql = "INSERT INTO matriculas (data, situacao, observacoes, endereco, " +
+                "aluno_id, funcionario_id, turma_id, pre_matricula, " +
+                "declaracao_orientacoes, data_declaracao) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setDate(1, Date.valueOf(matricula.getData()));
+            stmt.setString(2, matricula.getSituacao().name());
+            stmt.setString(3, matricula.getObservacoes());
+            stmt.setString(4, matricula.getEndereco());
+            stmt.setInt(5, matricula.getAluno().getId());
+            stmt.setInt(6, matricula.getFuncionario().getId());
+
+            // Usar NULL quando não há turma
+            if (matricula.getTurma() != null && matricula.getTurma().getId() != 0) {
+                stmt.setInt(7, matricula.getTurma().getId());
+            } else {
+                stmt.setNull(7, java.sql.Types.INTEGER);
+            }
+
+            stmt.setBoolean(8, matricula.getSituacao() == SituacaoMatricula.PRE_MATRICULA);
+            stmt.setBoolean(9, matricula.isDeclaracaoOrientacoes());
+            stmt.setDate(10, matricula.getDataDeclaracao() != null ?
+                    Date.valueOf(matricula.getDataDeclaracao()) : null);
+
             stmt.executeUpdate();
+
+            // Recupera o número gerado pelo banco
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    matricula.setNumeroMatricula(rs.getInt(1));
+                }
+            }
         }
     }
 
     public void atualizar(Matricula matricula) throws SQLException {
         String sql = "UPDATE matriculas SET situacao = ?, turma_id = ?, observacoes = ?, endereco = ?, " +
                 "pre_matricula = ?, declaracao_orientacoes = ?, data_declaracao = ? WHERE numero = ?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, matricula.getSituacao().name());
-            stmt.setInt(2, matricula.getTurma() != null ? matricula.getTurma().getId() : 0);
+
+            // Usar NULL quando não há turma
+            if (matricula.getTurma() != null && matricula.getTurma().getId() != 0) {
+                stmt.setInt(2, matricula.getTurma().getId());
+            } else {
+                stmt.setNull(2, java.sql.Types.INTEGER);
+            }
+
             stmt.setString(3, matricula.getObservacoes());
             stmt.setString(4, matricula.getEndereco());
             stmt.setBoolean(5, matricula.getSituacao() == SituacaoMatricula.PRE_MATRICULA);
             stmt.setBoolean(6, matricula.isDeclaracaoOrientacoes());
-            stmt.setDate(7, matricula.getDataDeclaracao() != null ? Date.valueOf(matricula.getDataDeclaracao()) : null);
+            stmt.setDate(7, matricula.getDataDeclaracao() != null ?
+                    Date.valueOf(matricula.getDataDeclaracao()) : null);
             stmt.setInt(8, matricula.getNumeroMatricula());
+
             stmt.executeUpdate();
         }
     }
 
     public List<Matricula> listarTodos() throws SQLException {
         List<Matricula> matriculas = new ArrayList<>();
-        String sql = "SELECT m.*, a.nome as aluno_nome, f.nome as funcionario_nome, t.nome as turma_nome " +
+        String sql = "SELECT m.*, a.nome as aluno_nome, f.nome as funcionario_nome, t.nome as turma_nome, " +
+                "t.tipo as turma_tipo, t.faixa_etaria as turma_faixa_etaria " +
                 "FROM matriculas m " +
                 "LEFT JOIN alunos a ON m.aluno_id = a.id " +
                 "LEFT JOIN funcionarios f ON m.funcionario_id = f.id " +
                 "LEFT JOIN turmas t ON m.turma_id = t.id";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                // Criar objetos básicos para a matrícula
+                // Criar aluno básico
                 Aluno aluno = new Aluno(rs.getInt("aluno_id"), rs.getString("aluno_nome"),
                         LocalDate.now(), "", "", "", "");
+
+                // Criar funcionário básico
                 Funcionario funcionario = new Professor(rs.getInt("funcionario_id"),
                         rs.getString("funcionario_nome"), 0, "", "", "", false);
 
+                // Criar turma se existir
                 Turma turma = null;
-                if (rs.getInt("turma_id") != 0) {
-                    turma = new TurmaCreche(rs.getInt("turma_id"), rs.getString("turma_nome"), "");
+                int turmaId = rs.getInt("turma_id");
+                if (!rs.wasNull() && turmaId != 0) {
+                    String tipo = rs.getString("turma_tipo");
+                    String nome = rs.getString("turma_nome");
+                    String faixaEtaria = rs.getString("turma_faixa_etaria");
+
+                    switch (tipo) {
+                        case "CRECHE":
+                            turma = new TurmaCreche(turmaId, nome, "");
+                            break;
+                        case "INFANTIL":
+                            turma = new TurmaInfantil(turmaId, nome, "");
+                            break;
+                        case "PRE":
+                            turma = new TurmaPre(turmaId, nome, "", "Diárias");
+                            break;
+                    }
+                    if (turma != null) {
+                        turma.setFaixaEtaria(faixaEtaria);
+                    }
                 }
 
                 Matricula matricula = new Matricula(
@@ -603,7 +653,12 @@ class MatriculaDAO {
                         turma
                 );
 
-                // Carregar responsáveis da matrícula
+                matricula.setDeclaracaoOrientacoes(rs.getBoolean("declaracao_orientacoes"));
+                if (rs.getDate("data_declaracao") != null) {
+                    matricula.setDataDeclaracao(rs.getDate("data_declaracao").toLocalDate());
+                }
+
+                // Carregar responsáveis (AGORA COM O MÉTODO CORRETO)
                 List<Responsavel> responsaveis = carregarResponsaveisMatricula(rs.getInt("numero"));
                 for (Responsavel resp : responsaveis) {
                     matricula.getResponsaveis().add(resp);
@@ -615,11 +670,13 @@ class MatriculaDAO {
         return matriculas;
     }
 
+    // ADICIONE ESTE MÉTODO (que estava faltando):
     private List<Responsavel> carregarResponsaveisMatricula(int numeroMatricula) throws SQLException {
         List<Responsavel> responsaveis = new ArrayList<>();
         String sql = "SELECT r.* FROM responsaveis r " +
                 "INNER JOIN matricula_responsavel mr ON r.id = mr.responsavel_id " +
                 "WHERE mr.matricula_numero = ?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, numeroMatricula);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -633,6 +690,12 @@ class MatriculaDAO {
                             rs.getString("telefone"),
                             rs.getString("celular_whatsapp")
                     );
+                    // Carrega campos adicionais
+                    resp.setOutroContato(rs.getString("outro_contato"));
+                    resp.setLocalTrabalho(rs.getString("local_trabalho"));
+                    resp.setRg(rs.getString("rg"));
+                    resp.setDiasVoluntariado(rs.getInt("dias_voluntariado"));
+
                     responsaveis.add(resp);
                 }
             }
@@ -1206,6 +1269,7 @@ abstract class Turma {
 
     public abstract boolean verificarIdadeAluno(int idade);
 
+    // GETTERS
     public int getId() { return id; }
     public String getNome() { return nome; }
     public String getFaixaEtaria() { return faixaEtaria; }
@@ -1213,8 +1277,10 @@ abstract class Turma {
     public List<Aluno> getAlunos() { return alunos; }
     public Professor getProfessor() { return professor; }
 
+    // SETTERS (ADICIONE ESTES)
     public void setId(int id) { this.id = id; }
     public void setNome(String nome) { this.nome = nome; }
+    public void setFaixaEtaria(String faixaEtaria) { this.faixaEtaria = faixaEtaria; }
     public void setTurno(String turno) { this.turno = turno; }
     public void setProfessor(Professor professor) { this.professor = professor; }
 
@@ -1234,7 +1300,7 @@ class TurmaCreche extends Turma {
     private String horaSaida = "16:00";
 
     public TurmaCreche(int id, String nome, String turno) {
-        super(id, nome, "2-3 anos", turno);
+        super(id, nome, "2-3 anos", turno);  // ← Chama o construtor da classe pai
     }
 
     @Override
@@ -1242,6 +1308,7 @@ class TurmaCreche extends Turma {
         return idade >= 2 && idade <= 3;
     }
 
+    // GETTERS específicos - NÃO sobrescreva getFaixaEtaria()!
     public String getHoraLancheManha() { return horaLancheManha; }
     public String getHoraAlmoco() { return horaAlmoco; }
     public String getHoraCochilo() { return horaCochilo; }
@@ -1254,6 +1321,7 @@ class TurmaCreche extends Turma {
                 ", Cochilo " + horaCochilo;
     }
 }
+
 
 class TurmaInfantil extends Turma {
     private String horaLancheManha = "9:30";
@@ -1339,6 +1407,7 @@ class Matricula {
         this.dataDeclaracao = LocalDate.now();
     }
 
+    // GETTERS
     public int getNumeroMatricula() { return numeroMatricula; }
     public LocalDate getData() { return data; }
     public SituacaoMatricula getSituacao() { return situacao; }
@@ -1351,10 +1420,28 @@ class Matricula {
     public boolean isDeclaracaoOrientacoes() { return declaracaoOrientacoes; }
     public LocalDate getDataDeclaracao() { return dataDeclaracao; }
 
-    public void setSituacao(SituacaoMatricula situacao) { this.situacao = situacao; }
-    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
-    public void setEndereco(String endereco) { this.endereco = endereco; }
-    public void setTurma(Turma turma) { this.turma = turma; }
+    // SETTERS
+    public void setNumeroMatricula(int numeroMatricula) {
+        this.numeroMatricula = numeroMatricula;
+    }
+    public void setSituacao(SituacaoMatricula situacao) {
+        this.situacao = situacao;
+    }
+    public void setObservacoes(String observacoes) {
+        this.observacoes = observacoes;
+    }
+    public void setEndereco(String endereco) {
+        this.endereco = endereco;
+    }
+    public void setTurma(Turma turma) {
+        this.turma = turma;
+    }
+    public void setDeclaracaoOrientacoes(boolean declaracaoOrientacoes) {
+        this.declaracaoOrientacoes = declaracaoOrientacoes;
+    }
+    public void setDataDeclaracao(LocalDate dataDeclaracao) {
+        this.dataDeclaracao = dataDeclaracao;
+    }
 
     @Override
     public String toString() {
